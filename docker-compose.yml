@@ -1,0 +1,14 @@
+version: '3.4'
+
+services:
+  dashboard_web_api:
+    image: youngpreacher/dashboard_web_api:prod
+    volumes:
+      - ./logs:/app/Logs
+      - ./images:/app/ExerciseImages
+    env_file:
+      - ./DashboardWebAPI/environments.env                    
+    ports:
+      - "8080:8080"
+
+
