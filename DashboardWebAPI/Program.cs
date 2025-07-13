@@ -1,12 +1,17 @@
 ﻿using ClosedXML.Excel;
 using DashboardWebAPI.Data;
 using DashboardWebAPI.DataTransferObjects;
+using DashboardWebAPI.Helpers;
 using DashboardWebAPI.Models;
 using DashboardWebAPI.Utils;
 using DotNetEnv;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
 using System.Globalization;
+using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -25,6 +30,32 @@ builder.Services.AddCors(options =>
     .AllowAnyMethod()
     .AllowAnyHeader());
 });
+
+
+builder.Services.AddAuthentication(x =>
+{
+    x.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+    x.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+})
+  .AddJwtBearer(options =>
+  {
+      options.RequireHttpsMetadata = false;
+      options.SaveToken = true;
+      options.TokenValidationParameters = new TokenValidationParameters
+      {
+          ValidateIssuer = true,
+          ValidateAudience = true,
+          ValidateLifetime = false,
+          ValidateIssuerSigningKey = true,
+          ValidIssuer = Environment.GetEnvironmentVariable("JWTAUTH_ISSUER"),
+          ValidAudience = Environment.GetEnvironmentVariable("JWTAUTH_AUDIENCE"),
+          IssuerSigningKey = new SymmetricSecurityKey(Encoding.ASCII.GetBytes(Environment.GetEnvironmentVariable("JWTAUTH_SECRETKEY") ??
+            throw new InvalidOperationException("SecretKey not found"))),
+          ClockSkew = TimeSpan.Zero
+      };
+  });
+
+builder.Services.AddAuthorization();
 
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
@@ -51,6 +82,9 @@ using (var serviceScope = app.Services.CreateScope())
 }
 
 app.UseCors("CorsPolicy");
+
+app.UseAuthentication();
+app.UseAuthorization();
 
 app.MapPost("/api/upload", async (IFormFile file, IDAL dal) =>
 {
@@ -128,7 +162,8 @@ app.MapPost("/api/upload", async (IFormFile file, IDAL dal) =>
     }
 })
 .Accepts<IFormFile>("multipart/form-data")
-.DisableAntiforgery();
+.DisableAntiforgery()
+.RequireAuthorization();
 
 app.MapGet("/api/GetTasks/{date}", async (long date, IDAL dal) =>
 {
@@ -141,7 +176,8 @@ app.MapGet("/api/GetTasks/{date}", async (long date, IDAL dal) =>
     {
         return Results.BadRequest(ex.Message);
     }
-});
+})
+.RequireAuthorization();
 
 app.MapPost("/api/AddCriticalTask", async ([FromBody] CriticalTask task, IDAL dal) =>
 {
@@ -158,7 +194,8 @@ app.MapPost("/api/AddCriticalTask", async ([FromBody] CriticalTask task, IDAL da
     {
         return Results.BadRequest(ex.Message);
     }
-});
+})
+.RequireAuthorization();
 
 app.MapPut("/api/EditCriticalTask", async ([FromBody] CriticalTask task, IDAL dal) =>
 {
@@ -171,7 +208,8 @@ app.MapPut("/api/EditCriticalTask", async ([FromBody] CriticalTask task, IDAL da
     {
         return Results.BadRequest(ex.Message);
     }
-});
+})
+.RequireAuthorization();
 
 app.MapGet("/api/GetCriticalTasks", async (IDAL dal) =>
 {
@@ -185,7 +223,8 @@ app.MapGet("/api/GetCriticalTasks", async (IDAL dal) =>
     {
         return Results.BadRequest(ex.Message);
     }
-});
+})
+.RequireAuthorization();
 
 app.MapGet("/api/GetDeveloperTasks", async (IDAL dal) =>
 {
@@ -199,7 +238,8 @@ app.MapGet("/api/GetDeveloperTasks", async (IDAL dal) =>
     {
         return Results.BadRequest(ex.Message);
     }
-});
+})
+.RequireAuthorization();
 
 app.MapPost("/api/AddDeveloperTask", async ([FromBody] DeveloperTask task, IDAL dal) =>
 {
@@ -212,7 +252,8 @@ app.MapPost("/api/AddDeveloperTask", async ([FromBody] DeveloperTask task, IDAL 
     {
         return Results.BadRequest(ex.Message);
     }
-});
+})
+.RequireAuthorization();
 
 app.MapPut("/api/EditDeveloperTask", async ([FromBody] DeveloperTask task, IDAL dal) =>
 {
@@ -225,7 +266,8 @@ app.MapPut("/api/EditDeveloperTask", async ([FromBody] DeveloperTask task, IDAL 
     {
         return Results.BadRequest(ex.Message);
     }
-});
+})
+.RequireAuthorization();
 
 app.MapGet("/api/GetBussinessDays/year={year}&month={month}", async (int year, int month, IDAL dal) =>
 {
@@ -238,7 +280,8 @@ app.MapGet("/api/GetBussinessDays/year={year}&month={month}", async (int year, i
     {
         return Results.BadRequest(ex.Message);
     }
-});
+})
+.RequireAuthorization();
 
 app.MapGet("/api/GetBussinessDaysYears", async (IDAL dal) =>
 {
@@ -251,7 +294,8 @@ app.MapGet("/api/GetBussinessDaysYears", async (IDAL dal) =>
     {
         return Results.BadRequest(ex.Message);
     }
-});
+})
+.RequireAuthorization();
 
 app.MapPut("/api/EditBussinessDay", async ([FromBody] EditBussinessDayDTO day, IDAL dal) =>
 {
@@ -269,6 +313,29 @@ app.MapPut("/api/EditBussinessDay", async ([FromBody] EditBussinessDayDTO day, I
     {
         return Results.BadRequest(ex.Message);
     }
+})
+.RequireAuthorization();
+
+app.MapPost("/api/SignIn", async ([FromBody] UserLoginDTO userCredentials, IDAL dal) =>
+{
+    var user = await dal.GetUserAsync(userCredentials);
+    if(user == null)
+    {
+        return Results.Unauthorized();
+    }
+
+    var passwordHasher = new PasswordHasher<object>();
+
+    var result = passwordHasher.VerifyHashedPassword(null, user.PasswordHash, userCredentials.Password);
+    if (result != PasswordVerificationResult.Success)
+    {
+        return  Results.Unauthorized();
+    }
+
+    var token = JWTHelper.GenerateToken(userCredentials, user.Id);
+
+    return Results.Ok(new { Token = token });
+
 });
 
 app.Run();

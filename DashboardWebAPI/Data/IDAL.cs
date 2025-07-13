@@ -17,5 +17,6 @@ namespace DashboardWebAPI.Data
         public Task<List<BussinessDayDTO>> GetBussinessDaysForMonthAsync(int year, int month);
         public Task<bool> EditBussinessDayAsync(EditBussinessDayDTO day);
         public Task<List<int>> GetBussinessDaysYearsAsync();
+        public Task<User> GetUserAsync(UserLoginDTO userCredentials);
     }
 }
