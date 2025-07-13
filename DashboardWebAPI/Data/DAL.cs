@@ -1,6 +1,8 @@
 ﻿using DashboardWebAPI.DataTransferObjects;
 using DashboardWebAPI.Models;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Authorization;
 
 namespace DashboardWebAPI.Data
 {
@@ -148,6 +150,11 @@ namespace DashboardWebAPI.Data
                 .ToListAsync();
 
             return years;
+        }
+
+        public async Task<User> GetUserAsync(UserLoginDTO userCredentials)
+        { 
+            return await _db.UserSet.FirstOrDefaultAsync(x => x.Login.Equals(userCredentials.Login));
         }
     }
 }

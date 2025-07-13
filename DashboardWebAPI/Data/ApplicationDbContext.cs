@@ -58,5 +58,6 @@ namespace DashboardWebAPI.Data
         public DbSet<BussinessDayType> BussinessDayTypeSet { get; set; }
         public DbSet<CriticalTask> CriticalTaskSet { get; set; }
         public DbSet<DeveloperTask> DeveloperTaskSet { get; set; }
+        public DbSet<User> UserSet { get; set; }
     }
 }
