@@ -1,8 +1,6 @@
 ﻿using DashboardWebAPI.DataTransferObjects;
 using DashboardWebAPI.Models;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.AspNetCore.Identity;
-using Microsoft.AspNetCore.Authorization;
 
 namespace DashboardWebAPI.Data
 {
