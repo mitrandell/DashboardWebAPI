@@ -54,14 +54,6 @@ namespace DashboardWebAPI.Data
                     EndTaskDate = x.EndTaskDate == null ? " " : x.EndTaskDate.Value.ToString("yyyy-MM-dd")
                 }).ToListAsync();
         }
-
-        public async Task<List<BussinessDay>> GetBussinessDaysAsync(int id)
-        {
-            var dayType = await _db.BussinessDayTypeSet.Where(type => type.Id == id).FirstOrDefaultAsync();
-
-            return await _db.BussinessDaySet.Where(day => day.Type == dayType).ToListAsync();
-        }
-
         public async Task<bool> AddCriticalTaskDataAsync(CriticalTask taskData)
         {
             await _db.CriticalTaskSet.AddAsync(taskData);
@@ -69,7 +61,6 @@ namespace DashboardWebAPI.Data
 
             return true;
         }
-
         public async Task<bool> EditCriticalTaskDataAsync(CriticalTask taskData)
         {
             _db.Attach(taskData);
@@ -84,7 +75,6 @@ namespace DashboardWebAPI.Data
         {
             return await _db.CriticalTaskSet.Where(e => e.ActionStatus == "В процессе").Select(x => x).OrderByDescending(k => k.CreateAt).ToListAsync();
         }
-
         public async Task<List<DeveloperTask>> GetDeveloperTaskDataAsync()
         {
             return await _db.DeveloperTaskSet.Where(e => e.ActionStatus == "В процессе").OrderByDescending(x => x.CreateAt).ToListAsync();
@@ -106,6 +96,13 @@ namespace DashboardWebAPI.Data
             await _db.SaveChangesAsync();
 
             return true;
+        }
+
+        public async Task<List<BussinessDay>> GetBussinessDaysAsync(int id)
+        {
+            var dayType = await _db.BussinessDayTypeSet.Where(type => type.Id == id).FirstOrDefaultAsync();
+
+            return await _db.BussinessDaySet.Where(day => day.Type == dayType).ToListAsync();
         }
 
         public async Task<List<BussinessDayDTO>> GetBussinessDaysForMonthAsync(int year, int month)
