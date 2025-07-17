@@ -140,7 +140,7 @@ app.MapPost("/api/upload", async (IFormFile file, IDAL dal) =>
                 StartTaskDate = DateTime.Parse(row.Cell(5).GetValue<string>().Split(", ")[1].Split("MSK")[0]),
                 ExecutorName = row.Cell(6).GetValue<string>(),
                 SystemSectionName = row.Cell(4).GetValue<string>().Contains('.')
-                    ? row.Cell(4).GetValue<string>().Split('.')[0]
+                    ? row.Cell(4).GetValue<string>().Split('.')[0].ToUpper()
                     : "НЕ УКАЗАН РАЗДЕЛ СИСТЕМЫ",
                 EndTaskDate = !string.IsNullOrEmpty(row.Cell(7).GetValue<string>())
                     ? DateTime.Parse(row.Cell(7).GetValue<string>().Split(", ")[1].Split("MSK")[0])
@@ -165,7 +165,7 @@ app.MapPost("/api/upload", async (IFormFile file, IDAL dal) =>
 .DisableAntiforgery()
 .RequireAuthorization();
 
-app.MapGet("/api/GetTasks/{date}", async (long date, IDAL dal) =>
+app.MapGet("/api/GetTasks/{date}", async (string date, IDAL dal) =>
 {
     try
     {

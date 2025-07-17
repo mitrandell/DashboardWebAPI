@@ -35,23 +35,24 @@ namespace DashboardWebAPI.Data
             return true;
         }
 
-        public async Task<List<TaskDataDTO>> GetTaskDataAsync(long date)
+        public async Task<List<TaskDataDTO>> GetTaskDataAsync(string date)
         {
-            DateTime dateTime = new DateTime(1970, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc);
-            dateTime = dateTime.AddMilliseconds(date).ToLocalTime();
+            DateTime dateTime = DateTime.ParseExact(date, "yyyy-MM-dd HH:mm:ss", System.Globalization.CultureInfo.InvariantCulture);
 
-            return await _db.TaskSet.Where(x => x.StartTaskDate > dateTime).Select(x => new TaskDataDTO
-            {
-                TaskNumber = x.TaskNumber,
-                Status = x.Status,
-                InitiatorName = x.InitiatorName,
-                Title = x.Title,
-                ExecutorName = x.ExecutorName,
-                SystemSectionName = x.SystemSectionName,
-                ExecutedTime = x.ExecutedTime,
-                StartTaskDate = x.StartTaskDate.ToString("yyyy-MM-dd"),
-                EndTaskDate = x.EndTaskDate == null ? " " : x.EndTaskDate.Value.ToString("yyyy-MM-dd")
-            }).ToListAsync();
+            return await _db.TaskSet.Where(x => x.StartTaskDate > dateTime)
+                .OrderBy(x => x.StartTaskDate)
+                .Select(x => new TaskDataDTO
+                {
+                    TaskNumber = x.TaskNumber,
+                    Status = x.Status,
+                    InitiatorName = x.InitiatorName,
+                    Title = x.Title,
+                    ExecutorName = x.ExecutorName,
+                    SystemSectionName = x.SystemSectionName,
+                    ExecutedTime = x.ExecutedTime,
+                    StartTaskDate = x.StartTaskDate.ToString("yyyy-MM-dd"),
+                    EndTaskDate = x.EndTaskDate == null ? " " : x.EndTaskDate.Value.ToString("yyyy-MM-dd")
+                }).ToListAsync();
         }
 
         public async Task<List<BussinessDay>> GetBussinessDaysAsync(int id)
