@@ -59,5 +59,6 @@ namespace DashboardWebAPI.Data
         public DbSet<CriticalTask> CriticalTaskSet { get; set; }
         public DbSet<DeveloperTask> DeveloperTaskSet { get; set; }
         public DbSet<User> UserSet { get; set; }
+        public DbSet<Note> NoteSet { get; set; }
     }
 }

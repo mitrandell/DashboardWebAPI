@@ -152,5 +152,38 @@ namespace DashboardWebAPI.Data
         { 
             return await _db.UserSet.FirstOrDefaultAsync(x => x.Login.Equals(userCredentials.Login));
         }
+
+        public async Task AddNoteAsync(Note note)
+        {
+            await _db.NoteSet.AddAsync(note);
+            await _db.SaveChangesAsync();
+        }
+
+        public async Task<List<Note>> GetNotesAsync()
+        {
+            return await _db.NoteSet.ToListAsync();
+        }
+
+        public async Task EditNoteAsync(Note note)
+        {
+            _db.NoteSet.Attach(note);
+            _db.Entry(note).State = EntityState.Modified;
+
+            await _db.SaveChangesAsync();
+        }
+
+        public async Task<bool> DeleteNoteAsync(long id)
+        {
+            var note = await _db.NoteSet.FirstOrDefaultAsync(x => x.Id == id);
+            if(note == null)
+            {
+                return false;
+            }
+
+            _db.Remove(note);
+            await _db.SaveChangesAsync();
+
+            return true;
+        }
     }
 }
