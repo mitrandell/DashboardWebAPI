@@ -23,5 +23,11 @@ namespace DashboardWebAPI.Data
 
         //acount
         public Task<User> GetUserAsync(UserLoginDTO userCredentials);
+
+        //notes
+        public Task AddNoteAsync(Note note);
+        public Task<List<Note>> GetNotesAsync();
+        public Task EditNoteAsync(Note note);
+        public Task<bool> DeleteNoteAsync(long id);
     }
 }

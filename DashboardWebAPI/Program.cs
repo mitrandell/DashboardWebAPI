@@ -304,7 +304,7 @@ app.MapPut("/api/EditBussinessDay", async ([FromBody] EditBussinessDayDTO day, I
         var result = await dal.EditBussinessDayAsync(day);
         if (!result)
         {
-            return Results.BadRequest("Рабочий день не найден");
+            return Results.NotFound("Рабочий день не найден");
         }
 
         return Results.Ok();
@@ -337,5 +337,66 @@ app.MapPost("/api/SignIn", async ([FromBody] UserLoginDTO userCredentials, IDAL 
     return Results.Ok(new { Token = token });
 
 });
+
+app.MapPost("api/notes/AddNote", async (Note note, IDAL dal) =>
+{
+    try
+    {
+        await dal.AddNoteAsync(note);
+        return Results.Ok();
+    }
+    catch (Exception ex)
+    {
+        return Results.BadRequest(ex.Message);
+    }
+
+})
+.RequireAuthorization();
+
+app.MapGet("api/notes/GetNotes", async (IDAL dal) =>
+{
+    try
+    {
+        var notes = await dal.GetNotesAsync();
+        return Results.Ok(notes);
+    }
+    catch(Exception ex)
+    {
+        return Results.BadRequest(ex.Message);
+    }
+});
+
+app.MapPut("api/notes/EditNote", async (Note note, IDAL dal) =>
+{
+    try
+    {
+        await dal.EditNoteAsync(note);
+        return Results.Ok();
+    }
+    catch (Exception ex)
+    {
+        return Results.BadRequest(ex.Message);
+    }
+})
+.RequireAuthorization();
+
+app.MapDelete("api/notes/DeleteNote/noteId={id}", async (long id, IDAL dal) =>
+{
+    try
+    {
+        var result = await dal.DeleteNoteAsync(id);
+        if (!result)
+        {
+            return Results.NotFound("Примечание не найдено!");
+        }
+
+        return Results.Ok();
+    }
+    catch (Exception ex)
+    {
+        return Results.BadRequest(ex.Message);
+    }
+})
+.RequireAuthorization();
 
 app.Run();
