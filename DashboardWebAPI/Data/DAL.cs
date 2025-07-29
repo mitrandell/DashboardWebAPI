@@ -71,12 +71,12 @@ namespace DashboardWebAPI.Data
 
         public async Task<List<CriticalTask>> GetCriticalTaskDataAsync()
         {
-            return await _db.CriticalTaskSet.Where(e => e.ActionStatus == "В процессе").Select(x => x).ToListAsync();
+            return await _db.CriticalTaskSet.Where(e => e.ActionStatus == "В процессе").OrderBy(x => x.StartDate).ToListAsync();
         }
 
         public async Task<List<DeveloperTask>> GetDeveloperTaskDataAsync()
         {
-            return await _db.DeveloperTaskSet.Where(e => e.ActionStatus == "В процессе").ToListAsync();
+            return await _db.DeveloperTaskSet.Where(e => e.ActionStatus == "В процессе").OrderBy(x => x.StartDate).ToListAsync();
         }
 
         public async Task<bool> AddDeveloperTaskDataAsync(DeveloperTask taskData)
