@@ -26,11 +26,10 @@ builder.Services.AddScoped<IDAL, DAL>();
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("CorsPolicy", builder => builder.AllowAnyOrigin()
-    .WithOrigins("http://localhost:4200", "http://127.0.0.1:4200", "http://46.0.24.72:4200", "http://46.0.24.72:4200")
+    .WithOrigins("https://msk-statistics.ru")
     .AllowAnyMethod()
     .AllowAnyHeader());
 });
-
 
 builder.Services.AddAuthentication(x =>
 {
@@ -68,6 +67,9 @@ Thread.CurrentThread.CurrentUICulture = culture;
 
 var app = builder.Build();
 
+app.UseCors("CorsPolicy");
+app.UseDefaultFiles();
+app.UseStaticFiles();
 
 if (app.Environment.IsDevelopment())
 {
@@ -81,7 +83,6 @@ using (var serviceScope = app.Services.CreateScope())
     dbContext.Database.Migrate();
 }
 
-app.UseCors("CorsPolicy");
 
 app.UseAuthentication();
 app.UseAuthorization();
@@ -398,5 +399,7 @@ app.MapDelete("api/notes/DeleteNote/noteId={id}", async (long id, IDAL dal) =>
     }
 })
 .RequireAuthorization();
+
+app.MapFallbackToFile("/index.html");
 
 app.Run();
