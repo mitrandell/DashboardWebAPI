@@ -19,6 +19,8 @@ namespace DashboardWebAPI.Models
         public string? EndDate { get; set; }
         [MaxLength(100)]
         public string? ActionStatus { get; set; }
+        [MaxLength(1000)]
+        public string? UrlToRedmineTask { get; set; }
         public DateTime CreateAt { get; set; }
     }
 }
