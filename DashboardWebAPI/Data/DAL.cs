@@ -1,6 +1,10 @@
 ﻿using DashboardWebAPI.DataTransferObjects;
 using DashboardWebAPI.Models;
+using DocumentFormat.OpenXml.Drawing.Diagrams;
 using Microsoft.EntityFrameworkCore;
+using System.ComponentModel.DataAnnotations;
+using System.Diagnostics;
+using System.Text.Json.Serialization;
 
 namespace DashboardWebAPI.Data
 {
@@ -185,6 +189,65 @@ namespace DashboardWebAPI.Data
             await _db.SaveChangesAsync();
 
             return true;
+        }
+
+        public async Task AddScriptNoteAsync(ScriptNote scriptNote)
+        {
+            await _db.ScriptNoteSet.AddAsync(scriptNote);
+            await _db.SaveChangesAsync();
+        }
+
+        public async Task<List<ScriptNote>> GetScriptNotesAsync()
+        {
+            return await _db.ScriptNoteSet.Include(x => x.Descriptions!.OrderBy(d => d.Position)).OrderByDescending(x => x.CreateAt).ToListAsync();
+        }
+
+        public async Task EditScriptNotesAsync(ScriptNote scriptNote)
+        {
+            var existingNote = await _db.ScriptNoteSet.Include(n => n.Descriptions)
+               .FirstOrDefaultAsync(n => n.Id == scriptNote.Id);
+
+            if (existingNote == null)
+            {
+                throw new ArgumentException("Запись не найдена!");
+            }
+
+            existingNote.Title = scriptNote.Title;
+
+            var descriptionsToRemove = existingNote.Descriptions.Where(ed => !scriptNote.Descriptions.Any(d => d.Id == ed.Id)).ToList();
+            foreach (var description in descriptionsToRemove)
+            {
+                existingNote.Descriptions.Remove(description);
+            }
+
+            foreach (var newDesc in scriptNote.Descriptions)
+            {
+                if (newDesc.Id == 0) 
+                {
+                    existingNote.Descriptions.Add(newDesc);
+                }
+                else
+                {
+                    var existingDesc = existingNote.Descriptions.FirstOrDefault(d => d.Id == newDesc.Id);
+                    if (existingDesc != null)
+                    {
+                        existingDesc.Description = newDesc.Description;
+                    }
+                }
+            }
+
+            await _db.SaveChangesAsync();
+        }
+        public async Task DeleteScriptNoteAsync(long id)
+        {
+            var scriptNote = await _db.ScriptNoteSet.FirstOrDefaultAsync(x => x.Id == id);
+            if (scriptNote == null)
+            {
+                throw new ArgumentException($"Запись с id:{id} не найдена");
+            }
+
+            _db.Remove(scriptNote);
+            await _db.SaveChangesAsync();
         }
     }
 }

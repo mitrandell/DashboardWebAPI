@@ -3,6 +3,7 @@ using System;
 using DashboardWebAPI.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace DashboardWebAPI.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250823133914_AddScriptNotesModel")]
+    partial class AddScriptNotesModel
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -40,7 +43,7 @@ namespace DashboardWebAPI.Migrations
 
                     b.HasIndex("TypeId");
 
-                    b.ToTable("BussinessDaySet", (string)null);
+                    b.ToTable("BussinessDaySet");
                 });
 
             modelBuilder.Entity("DashboardWebAPI.Models.BussinessDayType", b =>
@@ -119,7 +122,7 @@ namespace DashboardWebAPI.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("CriticalTaskSet", (string)null);
+                    b.ToTable("CriticalTaskSet");
                 });
 
             modelBuilder.Entity("DashboardWebAPI.Models.DeveloperTask", b =>
@@ -168,7 +171,7 @@ namespace DashboardWebAPI.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("DeveloperTaskSet", (string)null);
+                    b.ToTable("DeveloperTaskSet");
                 });
 
             modelBuilder.Entity("DashboardWebAPI.Models.Note", b =>
@@ -192,7 +195,7 @@ namespace DashboardWebAPI.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("NoteSet", (string)null);
+                    b.ToTable("NoteSet");
                 });
 
             modelBuilder.Entity("DashboardWebAPI.Models.ScriptDescription", b =>
@@ -203,26 +206,21 @@ namespace DashboardWebAPI.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
 
-                    b.Property<DateTime?>("CreateAt")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("timestamp without time zone")
-                        .HasDefaultValueSql("now()");
+                    b.Property<DateTime>("CreateAt")
+                        .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("Description")
                         .HasMaxLength(20000)
                         .HasColumnType("character varying(20000)");
 
-                    b.Property<int>("Position")
-                        .HasColumnType("integer");
-
-                    b.Property<long>("ScriptNoteId")
+                    b.Property<long?>("ScriptNoteId")
                         .HasColumnType("bigint");
 
                     b.HasKey("Id");
 
                     b.HasIndex("ScriptNoteId");
 
-                    b.ToTable("ScriptDescriptionNoteSet", (string)null);
+                    b.ToTable("ScriptDescription");
                 });
 
             modelBuilder.Entity("DashboardWebAPI.Models.ScriptNote", b =>
@@ -233,7 +231,7 @@ namespace DashboardWebAPI.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
 
-                    b.Property<DateTime?>("CreateAt")
+                    b.Property<DateTime>("CreateAt")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("timestamp without time zone")
                         .HasDefaultValueSql("now()");
@@ -244,7 +242,7 @@ namespace DashboardWebAPI.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("ScriptNoteSet", (string)null);
+                    b.ToTable("ScriptNoteSet");
                 });
 
             modelBuilder.Entity("DashboardWebAPI.Models.TaskData", b =>
@@ -303,7 +301,7 @@ namespace DashboardWebAPI.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("TaskSet", (string)null);
+                    b.ToTable("TaskSet");
                 });
 
             modelBuilder.Entity("DashboardWebAPI.Models.User", b =>
@@ -326,7 +324,7 @@ namespace DashboardWebAPI.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("UserSet", (string)null);
+                    b.ToTable("UserSet");
                 });
 
             modelBuilder.Entity("DashboardWebAPI.Models.BussinessDay", b =>
@@ -342,13 +340,9 @@ namespace DashboardWebAPI.Migrations
 
             modelBuilder.Entity("DashboardWebAPI.Models.ScriptDescription", b =>
                 {
-                    b.HasOne("DashboardWebAPI.Models.ScriptNote", "ScriptNote")
+                    b.HasOne("DashboardWebAPI.Models.ScriptNote", null)
                         .WithMany("Descriptions")
-                        .HasForeignKey("ScriptNoteId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("ScriptNote");
+                        .HasForeignKey("ScriptNoteId");
                 });
 
             modelBuilder.Entity("DashboardWebAPI.Models.ScriptNote", b =>

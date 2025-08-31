@@ -51,6 +51,16 @@ namespace DashboardWebAPI.Data
             {
                 entity.Property(x => x.CreateAt).HasColumnType("timestamp without time zone").HasDefaultValueSql("now()");
             });
+
+            builder.Entity<ScriptNote>(entity =>
+            {
+                entity.Property(x => x.CreateAt).HasColumnType("timestamp without time zone").HasDefaultValueSql("now()");
+            });
+            
+            builder.Entity<ScriptDescription>(entity =>
+            {
+                entity.Property(x => x.CreateAt).HasColumnType("timestamp without time zone").HasDefaultValueSql("now()");
+            });
         }
 
         public DbSet<TaskData> TaskSet { get; set; }
@@ -60,5 +70,8 @@ namespace DashboardWebAPI.Data
         public DbSet<DeveloperTask> DeveloperTaskSet { get; set; }
         public DbSet<User> UserSet { get; set; }
         public DbSet<Note> NoteSet { get; set; }
+        public DbSet<ScriptNote> ScriptNoteSet { get; set; }
+        public DbSet<ScriptDescription> ScriptDescriptionNoteSet { get; set; }
+
     }
 }
