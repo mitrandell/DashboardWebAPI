@@ -26,7 +26,7 @@ builder.Services.AddScoped<IDAL, DAL>();
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("CorsPolicy", builder => builder.AllowAnyOrigin()
-    .WithOrigins("https://msk-statistics.ru")
+    .WithOrigins("https://msk-statistics.ru", "http://localhost:4200")
     .AllowAnyMethod()
     .AllowAnyHeader());
 });
@@ -399,6 +399,66 @@ app.MapDelete("api/notes/DeleteNote/noteId={id}", async (long id, IDAL dal) =>
     }
 })
 .RequireAuthorization();
+
+
+
+app.MapPost("api/scriptNotes/AddScriptNote", async (ScriptNote scriptNote, IDAL dal) =>
+{
+    try
+    {
+        await dal.AddScriptNoteAsync(scriptNote);
+        return Results.Ok();
+    }
+    catch (Exception ex)
+    {
+        return Results.BadRequest(ex.Message);
+    }
+
+})
+.RequireAuthorization();
+
+app.MapGet("api/scriptNotes/GetScriptNotes", async (IDAL dal) =>
+{
+    try
+    {
+        var notes = await dal.GetScriptNotesAsync();
+        return Results.Ok(notes);
+    }
+    catch (Exception ex)
+    {
+        return Results.BadRequest(ex.Message);
+    }
+});
+
+app.MapPut("/api/scriptNotes/EditScriptNote", async ([FromBody] ScriptNote scriptNote, IDAL dal) =>
+{
+    try
+    {
+        await dal.EditScriptNotesAsync(scriptNote);
+        return Results.Ok();
+    }
+    catch (Exception ex)
+    {
+        return Results.BadRequest(ex.Message);
+    }
+})
+.RequireAuthorization();
+
+app.MapDelete("api/scriptNotes/DeleteScriptNote/noteId={id}", async (long id, IDAL dal) =>
+{
+    try
+    {
+        await dal.DeleteScriptNoteAsync(id);
+
+        return Results.Ok();
+    }
+    catch (Exception ex)
+    {
+        return Results.BadRequest(ex.Message);
+    }
+})
+.RequireAuthorization();
+
 
 app.MapFallbackToFile("/index.html");
 

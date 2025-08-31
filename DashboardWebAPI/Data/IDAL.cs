@@ -29,5 +29,11 @@ namespace DashboardWebAPI.Data
         public Task<List<Note>> GetNotesAsync();
         public Task EditNoteAsync(Note note);
         public Task<bool> DeleteNoteAsync(long id);
+
+        //script notes
+        public Task AddScriptNoteAsync(ScriptNote scriptNote);
+        public Task<List<ScriptNote>> GetScriptNotesAsync();
+        public Task EditScriptNotesAsync(ScriptNote scriptNote);
+        public Task DeleteScriptNoteAsync(long id);
     }
 }
