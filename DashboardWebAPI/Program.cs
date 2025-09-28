@@ -428,7 +428,8 @@ app.MapGet("api/scriptNotes/GetScriptNotes", async (IDAL dal) =>
     {
         return Results.BadRequest(ex.Message);
     }
-});
+})
+.RequireAuthorization();
 
 app.MapPut("/api/scriptNotes/EditScriptNote", async ([FromBody] ScriptNote scriptNote, IDAL dal) =>
 {
