@@ -61,6 +61,11 @@ namespace DashboardWebAPI.Data
             {
                 entity.Property(x => x.CreateAt).HasColumnType("timestamp without time zone").HasDefaultValueSql("now()");
             });
+
+            builder.Entity<TelegramChat>(entity =>
+            {
+                entity.Property(x => x.CreateAt).HasColumnType("timestamp without time zone").HasDefaultValueSql("now()");
+            });
         }
 
         public DbSet<TaskData> TaskSet { get; set; }
@@ -72,6 +77,7 @@ namespace DashboardWebAPI.Data
         public DbSet<Note> NoteSet { get; set; }
         public DbSet<ScriptNote> ScriptNoteSet { get; set; }
         public DbSet<ScriptDescription> ScriptDescriptionNoteSet { get; set; }
+        public DbSet<TelegramChat> TelegramChatSet { get; set; }
 
     }
 }

@@ -3,7 +3,9 @@ using DashboardWebAPI.Data;
 using DashboardWebAPI.DataTransferObjects;
 using DashboardWebAPI.Helpers;
 using DashboardWebAPI.Models;
+using DashboardWebAPI.Services;
 using DashboardWebAPI.Utils;
+using DashboardWebAPI.Workers;
 using DotNetEnv;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
@@ -12,16 +14,23 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using System.Globalization;
 using System.Text;
+using Telegram.Bot;
 
 var builder = WebApplication.CreateBuilder(args);
 
 Env.Load("./environments.env");
 
-builder.Services.AddDbContext<ApplicationDbContext>(options =>
-    options.UseNpgsql(Environment.GetEnvironmentVariable("CONNECTION_STRING") ??
-        throw new InvalidOperationException("Connection string 'postgresql' not found.")));
+var connectionString = Environment.GetEnvironmentVariable("CONNECTION_STRING") ??
+        throw new InvalidOperationException("Connection string 'postgresql' not found.");
 
-builder.Services.AddScoped<IDAL, DAL>();
+builder.Services.AddDbContext<ApplicationDbContext>(options =>
+    options.UseNpgsql(connectionString));
+
+builder.Services.AddSingleton<TelegramBotClient>(provider =>
+{
+    return new TelegramBotClient(Environment.GetEnvironmentVariable("TELEGRAM_BOT_TOKEN") ??
+        throw new InvalidOperationException("Telegram bot token not found."));
+});
 
 builder.Services.AddCors(options =>
 {
@@ -59,6 +68,17 @@ builder.Services.AddAuthorization();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
+builder.Services.AddScoped<IDAL, DAL>();
+builder.Services.AddScoped<ITelegramNotificationService, TelegramNotificationService>();
+builder.Services.AddScoped<INotificationExpiresDeveloperTasksService, NotificationExpiresDeveloperTasksService>();
+builder.Services.AddScoped<ITelegramChatUpdateService, TelegramChatUpdateService>();
+builder.Services.AddHostedService<TelegramNotificationWorker>();
+//builder.Services.AddHostedService<TelegramUpdatesWorker>();
+builder.Services.AddHostedService<TelegramBotListenerWorker>();
+builder.Services.AddSingleton<INotificationBuilderServcie, NotificationBuilderService>();
+builder.Services.AddSingleton<ITelegramBotListenerService, TelegramBotListenerService>();
+
+
 var culture = new CultureInfo("ru-RU");
 CultureInfo.DefaultThreadCurrentCulture = culture;
 CultureInfo.DefaultThreadCurrentUICulture = culture;
@@ -66,6 +86,7 @@ Thread.CurrentThread.CurrentCulture = culture;
 Thread.CurrentThread.CurrentUICulture = culture;
 
 var app = builder.Build();
+
 
 app.UseCors("CorsPolicy");
 app.UseDefaultFiles();

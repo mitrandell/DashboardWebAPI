@@ -35,5 +35,10 @@ namespace DashboardWebAPI.Data
         public Task<List<ScriptNote>> GetScriptNotesAsync();
         public Task EditScriptNotesAsync(ScriptNote scriptNote);
         public Task DeleteScriptNoteAsync(long id);
+
+        //Telegram notifications
+        public Task<IEnumerable<long?>> GetAllChatIdsAsync();
+        public Task AddChatDataAsync(TelegramChat chat);
+        public Task DeleteChatAsync(long? chatId);
     }
 }

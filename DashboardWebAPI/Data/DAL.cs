@@ -249,5 +249,22 @@ namespace DashboardWebAPI.Data
             _db.Remove(scriptNote);
             await _db.SaveChangesAsync();
         }
+
+        public async Task<IEnumerable<long?>> GetAllChatIdsAsync()
+        {
+            return await _db.TelegramChatSet.Select(x => x.ChatId).ToHashSetAsync();
+        }
+
+        public async Task AddChatDataAsync(TelegramChat chat)
+        {
+            await _db.TelegramChatSet.AddAsync(chat);
+            await _db.SaveChangesAsync();
+        }
+
+        public async Task DeleteChatAsync(long? chatId)
+        {
+            _db.Remove(chatId);
+            await _db.SaveChangesAsync();
+        }
     }
 }
