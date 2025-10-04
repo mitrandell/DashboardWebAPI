@@ -34,7 +34,6 @@ namespace DashboardWebAPI.Services
             AppendSection(sb, sevendDaysToExpire, "<b>⚠Через 7 дней истекают задачи:</b>");
             AppendSection(sb, threeDaysToExpire, "<b>‼Через 3 дня истекают задачи:</b>");
 
-
             return sb.ToString();
         }
 
@@ -48,11 +47,10 @@ namespace DashboardWebAPI.Services
                 foreach (var task in tasks)
                 {
                     sb.Append($"""
-                        <b>Номер задачи в ITSM:</b> {task.TaskNumber}
-                        <b>Описание:</b> {task.Description}
-                        <b>Крайний срок:</b> {task.EndDate}
+                        <b>✅Номер задачи в ITSM:</b> {task.TaskNumber}
                         <b>Статус в redmine:</b> {task.RedmineSatus}
-                        <b>Ссылка в redmine:</b> {task.UrlToRedmineTask}
+                        <b>Описание:</b><a href="{task.UrlToRedmineTask}">{task.Description}</a>
+                        <b>Крайний срок:</b> {task.EndDate}
 
 
                         """);

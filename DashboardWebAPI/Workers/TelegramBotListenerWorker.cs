@@ -5,9 +5,9 @@ namespace DashboardWebAPI.Workers
 {
     public class TelegramBotListenerWorker : BackgroundService
     {
-        private readonly ITelegramBotListenerService _botService;
+        private readonly ITelegramBotClientService _botService;
 
-        public TelegramBotListenerWorker(ITelegramBotListenerService botService)
+        public TelegramBotListenerWorker(ITelegramBotClientService botService)
         {
             _botService = botService;
         }

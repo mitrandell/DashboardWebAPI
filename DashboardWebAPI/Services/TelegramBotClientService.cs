@@ -6,22 +6,25 @@ using Telegram.Bot.Exceptions;
 using Telegram.Bot.Polling;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
+using Telegram.Bot.Types.ReplyMarkups;
 
 namespace DashboardWebAPI.Services
 {
 
-    public interface ITelegramBotListenerService
+    public interface ITelegramBotClientService
     {
         void ListenForMessagesAsync(CancellationToken cancellationToken);
+        Task BroadcastMessage(string message, CancellationToken cancellationToken);
+        Task SendMessageToChat(long? chatId, string message, CancellationToken cancellationToken);
     }
 
-    public class TelegramBotListenerService : ITelegramBotListenerService
+    public class TelegramBotClientService : ITelegramBotClientService
     {
         private readonly TelegramBotClient _botClient;
         private readonly INotificationBuilderServcie _notificationBuilder;
         private readonly IServiceProvider _serviceProvider;
 
-        public TelegramBotListenerService(TelegramBotClient botClient, INotificationBuilderServcie notificationBuilder, IServiceProvider serviceProvider)
+        public TelegramBotClientService(TelegramBotClient botClient, INotificationBuilderServcie notificationBuilder, IServiceProvider serviceProvider)
         {
             _botClient = botClient;
             _notificationBuilder = notificationBuilder;
@@ -45,31 +48,32 @@ namespace DashboardWebAPI.Services
 
         private async Task HandleUpdateAsync(ITelegramBotClient botClient, Update update, CancellationToken cancellationToken)
         {
-            if (update.Message is not { } message)
-            {
-                return;
-            }
-
-            if (message.Text is not { } messageText)
-            {
-                return;
-            }
-
+    
             try
             {
                 using var scope = _serviceProvider.CreateScope();
 
-                var dalService = scope.ServiceProvider.GetRequiredService<IDAL>();
-                var updateChatService = scope.ServiceProvider.GetRequiredService<ITelegramChatUpdateService>();
+                var updateChatService = scope.ServiceProvider.GetRequiredService<ITelegramChatService>();
+                var dal = scope.ServiceProvider.GetRequiredService<IDAL>();
 
-                await updateChatService.AddChat(update, await botClient.GetMyName());
+                await updateChatService.AddChatAsync(update, await botClient.GetMyName());
+
+                if (update.Message is not { } message)
+                {
+                    return;
+                }
+
+                if (message.Text is not { } messageText)
+                {
+                    return;
+                }
 
                 var sendMessage = string.Empty;
 
                 switch (update.Message.Text)
                 {
                     case "/задачи":
-                        var tasks = await dalService.GetDeveloperTaskDataAsync();
+                        var tasks = await dal.GetDeveloperTaskDataAsync();
                         if(tasks.Count == 0)
                         {
                             sendMessage = "Отсутствуют открытые задачи на разработку 🎉";
@@ -77,17 +81,27 @@ namespace DashboardWebAPI.Services
                         }
 
                         sendMessage = _notificationBuilder.BuildNotification(tasks, "🔧<b>Открытые задачи на разработку:</b>");
+
                         break;
 
-                    default: break;
-
+                    default:
+                        sendMessage = """
+                            <b>Доступны следующие команды:</b>
+                            <b>/задачи</b> - получить список открытых задач на разработку
+                            """;
+                        break;
                 }
 
-                if(!string.IsNullOrEmpty(sendMessage))
+                if (!string.IsNullOrEmpty(sendMessage))
                 {
+
+                    var dalService = scope.ServiceProvider.GetRequiredService<IDAL>();
                     try
                     {
-                        await _botClient.SendMessage(update.Message.Chat.Id, sendMessage, parseMode: ParseMode.Html);
+                        await _botClient.SendMessage(
+                            update.Message.Chat.Id, 
+                            sendMessage, 
+                            parseMode: ParseMode.Html);
                     }
                     catch (Exception ex)
                     {
@@ -122,5 +136,66 @@ namespace DashboardWebAPI.Services
             return Task.CompletedTask;
         }
 
+        public async Task BroadcastMessage(string message, CancellationToken cancellationToken)
+        {
+            try
+            {
+                using var scope = _serviceProvider.CreateScope();
+
+                var chatService = scope.ServiceProvider.GetRequiredService<ITelegramChatService>();
+                var dal = scope.ServiceProvider.GetRequiredService<IDAL>();
+
+                var chatIds = await dal.GetAllChatIdsAsync();
+                if (!chatIds.Any())
+                {
+                    return;
+                }
+
+                using var semaphor = new SemaphoreSlim(1, 1);
+                var tasks = chatIds.Select(async chatId =>
+                {
+                    await semaphor.WaitAsync();
+                    try
+                    {
+                        await SendMessageToChat(chatId, message, cancellationToken);
+                    }
+                    finally
+                    {
+                        semaphor.Release();
+                    }
+                });
+
+                await Task.WhenAll(tasks);
+            }
+            catch (Exception ex)
+            {
+
+                Console.WriteLine("Произошла ошибка при рассылке сообщений в чаты: " + ex.Message);
+            }
+        }
+
+        public async Task SendMessageToChat(long? chatId, string message, CancellationToken cancellationToken)
+        {
+            try
+            {
+                await _botClient.SendMessage(chatId: chatId, text: message, parseMode: ParseMode.Html, cancellationToken: cancellationToken);
+            }
+            catch (Exception ex)
+            {
+                if (ex.Message.Contains("bot was blocked") || ex.Message.Contains("chat not found") ||
+                        ex.Message.Contains("Forbidden"))
+                {
+                    using var scope = _serviceProvider.CreateScope();
+
+                    var chatService = scope.ServiceProvider.GetRequiredService<ITelegramChatService>();
+
+                    await chatService.DeleteInactiveChatAsync(chatId);
+                }
+                else
+                {
+                    Console.WriteLine("Произошла ошибка при отправке сообщения в чат: " + ex.Message);
+                }
+            }
+        }
     }
 }

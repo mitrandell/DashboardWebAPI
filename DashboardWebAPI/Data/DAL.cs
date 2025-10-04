@@ -263,7 +263,8 @@ namespace DashboardWebAPI.Data
 
         public async Task DeleteChatAsync(long? chatId)
         {
-            _db.Remove(chatId);
+            var chat = await _db.TelegramChatSet.Where(x => x.ChatId == chatId).FirstOrDefaultAsync();
+            _db.TelegramChatSet.Remove(chat);
             await _db.SaveChangesAsync();
         }
     }

@@ -51,10 +51,10 @@ builder.Services.AddAuthentication(x =>
       options.SaveToken = true;
       options.TokenValidationParameters = new TokenValidationParameters
       {
-          ValidateIssuer = true,
-          ValidateAudience = true,
+          ValidateIssuer = false,
+          ValidateAudience = false,
           ValidateLifetime = false,
-          ValidateIssuerSigningKey = true,
+          ValidateIssuerSigningKey = false,
           ValidIssuer = Environment.GetEnvironmentVariable("JWTAUTH_ISSUER"),
           ValidAudience = Environment.GetEnvironmentVariable("JWTAUTH_AUDIENCE"),
           IssuerSigningKey = new SymmetricSecurityKey(Encoding.ASCII.GetBytes(Environment.GetEnvironmentVariable("JWTAUTH_SECRETKEY") ??
@@ -69,14 +69,12 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
 builder.Services.AddScoped<IDAL, DAL>();
-builder.Services.AddScoped<ITelegramNotificationService, TelegramNotificationService>();
 builder.Services.AddScoped<INotificationExpiresDeveloperTasksService, NotificationExpiresDeveloperTasksService>();
-builder.Services.AddScoped<ITelegramChatUpdateService, TelegramChatUpdateService>();
+builder.Services.AddScoped<ITelegramChatService, TelegramChatService>();
 builder.Services.AddHostedService<TelegramNotificationWorker>();
-//builder.Services.AddHostedService<TelegramUpdatesWorker>();
 builder.Services.AddHostedService<TelegramBotListenerWorker>();
 builder.Services.AddSingleton<INotificationBuilderServcie, NotificationBuilderService>();
-builder.Services.AddSingleton<ITelegramBotListenerService, TelegramBotListenerService>();
+builder.Services.AddSingleton<ITelegramBotClientService, TelegramBotClientService>();
 
 
 var culture = new CultureInfo("ru-RU");
