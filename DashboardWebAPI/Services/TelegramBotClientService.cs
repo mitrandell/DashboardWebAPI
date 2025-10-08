@@ -101,7 +101,8 @@ namespace DashboardWebAPI.Services
                         await _botClient.SendMessage(
                             update.Message.Chat.Id, 
                             sendMessage, 
-                            parseMode: ParseMode.Html);
+                            parseMode: ParseMode.Html,
+                            cancellationToken: cancellationToken);
                     }
                     catch (Exception ex)
                     {

@@ -14,7 +14,7 @@ namespace DashboardWebAPI.Workers
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
-            await Task.Delay(TimeSpan.FromSeconds(5));
+            await Task.Delay(TimeSpan.FromSeconds(5), stoppingToken);
 
             _botService.ListenForMessagesAsync(stoppingToken);
 
